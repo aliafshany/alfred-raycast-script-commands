@@ -1,0 +1,84 @@
+#!/usr/bin/python3
+"""Script Commands panel backend (Alfred 6, Alfred UI).
+
+argv: mode, then
+  list                         discover the commands (rsc.py's engine) into the list
+  detail <arg> <mode> <title> <value> <sub>   fill the right-hand card for the selected command
+  run    <arg>                 run it: an inline command refreshes its cached value now, any other
+                               command runs and its output fills the card (no notification, no Large Type)
+Prints Alfred UI JSON actions.
+"""
+import json
+import os
+import sys
+
+sys.dont_write_bytecode = True  # keep __pycache__ out of the workflow folder
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.dirname(HERE))
+import rsc  # noqa: E402
+
+MODES = {"inline": "inline · value cached, refreshed in the background", "silent": "silent · runs, shows its last line",
+         "compact": "compact · runs, shows its last line", "fullOutput": "full output · runs, shows everything"}
+
+
+def rows():
+    out = []
+    for entry in rsc.discover():
+        cache = rsc.read_cache(entry["key"]) if entry["mode"] == "inline" else None
+        refreshing = False
+        if entry["mode"] == "inline" and not entry["unsupported"] and not entry["bad_mode"]:
+            rsc.ensure_fresh(entry, cache)
+            refreshing = rsc.lock_exists(entry["key"])
+        item = rsc.filter_item(entry, cache, refreshing)
+        value = (item.get("text") or {}).get("copy", "")
+        prefix = (entry["icon"] + " ") if entry["icon"] else ""
+        out.append({"uid": entry["key"], "name.text": prefix + entry["title"],
+                    "sub.text": value or item.get("subtitle", ""), "arg": item.get("arg", ""),
+                    "mode": entry["mode"], "title": entry["title"], "value": value,
+                    "info": item.get("subtitle", ""), "valid": "1" if item.get("valid", True) else ""})
+    return out
+
+
+def card(title, mode, value, info, note=""):
+    return {"d_title": {"text": title}, "d_mode": {"text": MODES.get(mode, mode)}, "d_info": {"text": info},
+            "d_out": {"text": value or note}}
+
+
+def main():
+    mode = sys.argv[1] if len(sys.argv) > 1 else "list"
+    a = sys.argv[2:] + [""] * 6
+    if mode == "detail":
+        arg, cmode, title, value, info = a[:5]
+        if not title:
+            print("{}")
+            return
+        note = "Press ↩ to run it." if cmode != "inline" else "Loading… press ↩ to refresh now."
+        print(json.dumps({"update": {"ids": card(title, cmode, value, info, note)}}, ensure_ascii=False))
+        return
+    if mode == "run":
+        kind, _, rest = a[0].partition(":")
+        if kind == "refresh":
+            path = rsc.decode_path(rest)
+            rsc.store_refresh(path)
+            cache = rsc.read_cache(rsc.cache_key(path)) or {}
+            text = cache.get("value") or "(no output)"
+        elif kind == "run":
+            cmode, _, token = rest.partition(":")
+            result = rsc.run_command(rsc.decode_path(token))
+            full = result.get("full") or ""
+            text = (full if cmode == "fullOutput" else rsc.last_line(full)) or result.get("err") or "(no output)"
+        else:
+            text = "This command can't run here."
+        print(json.dumps({"update": {"ids": {"d_out": {"text": text}, "status": {"text": "Ran at " + __import__("time").strftime("%H:%M:%S")}}}},
+                         ensure_ascii=False))
+        return
+    with open(os.path.join(HERE, "components", "list.json")) as f:
+        view = json.load(f)
+    view["data"]["src"] = rows()
+    shown = os.environ.get("script_dirs") or "~/raycast-scripts"
+    status = "%d commands from %s" % (len(view["data"]["src"]), shown) if view["data"]["src"] else "No script commands found in " + shown
+    print(json.dumps({"replace": {"ids": {"list": view}}, "update": {"ids": {"status": {"text": status}}}}, ensure_ascii=False))
+
+
+if __name__ == "__main__":
+    main()

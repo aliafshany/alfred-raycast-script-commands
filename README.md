@@ -1,6 +1,8 @@
 # Raycast Script Commands
 
-Alfred workflow that runs [Raycast script commands](https://github.com/raycast/script-commands) you already have. The scripts stay as they are.
+Alfred workflow that runs [Raycast script commands](https://github.com/raycast/script-commands) you already have, in a native Alfred UI panel. The scripts stay as they are.
+
+> **Version 2 needs Alfred 6.** It is built on Alfred UI, which Alfred 5 doesn't have. On Alfred 5, use [v1.0.0](https://github.com/aliafshany/alfred-raycast-script-commands/releases/tag/v1.0.0).
 
 
 ## Install
@@ -19,14 +21,14 @@ Scripts should be executable and start with a shebang. The runner also accepts a
 
 | Key | Action |
 | --- | --- |
-| `rsc` | List every discovered command |
+| `rsc` | Open the panel: every discovered command on the left, the selected one on the right |
 | type | Filter the list by title |
-| Return on an inline command | Refresh it now and reopen `rsc` |
-| Return on silent or compact | Run it and show the last output line in a notification |
-| Return on full output | Run it and show the output in Large Type |
-| Command-C | Copy the row |
+| ↑ ↓ | Select a command; the right side shows its mode, status and latest output |
+| Return | Run the selected command; its output appears in the panel |
+| Command-Return | Copy the output and close |
+| Command-R | Reload the list (new scripts, fresh inline values) |
 
-Inline rows show the latest value as the title. The subtitle shows the command name and `updated Ns ago`, `refreshing`, or `⚠` plus the error. The list refreshes about once a second while it is open, so values move without another keypress.
+Inline commands show their latest cached value under the name. Return on one refreshes it now. Silent and compact commands show their last output line; full-output commands show everything.
 
 Commands that declare `@raycast.argument1` are listed and marked unsupported. This version does not prompt for arguments.
 
@@ -36,9 +38,11 @@ The Script Filter walks each folder in `script_dirs` and reads `# @raycast.*` he
 
 | Mode | Return does this |
 | --- | --- |
-| `inline` | Shows the first non-empty line of stdout. The value is cached in `$alfred_workflow_cache` for `refreshTime` (60 seconds when the header is absent). A detached process refreshes it under a lock. Return runs that refresh in the foreground and opens Alfred on `rsc` again. |
-| `silent`, `compact` | Runs the script and posts the last non-empty line as a notification. |
-| `fullOutput` | Runs the script and shows the output in Large Type. |
+| `inline` | Shows the first non-empty line of stdout. The value is cached in `$alfred_workflow_cache` for `refreshTime` (60 seconds when the header is absent). A detached process refreshes it under a lock. Return runs that refresh in the foreground and shows the new value. |
+| `silent`, `compact` | Runs the script and shows the last non-empty line. |
+| `fullOutput` | Runs the script and shows all of its output. |
+
+The panel lives in `rsc.alfredui`; its backend, `rsc.alfredui/panel`, imports `rsc.py` for discovery, caching and running.
 
 Each run uses the script's own directory as the working directory, a 30 second timeout, and a `PATH` that includes `/opt/homebrew/bin` and `/usr/local/bin`. ANSI color sequences are stripped from the output.
 
@@ -50,7 +54,7 @@ Alfred runs this workflow on your Mac. It reads the folders you configured and r
 
 ## Requirements
 
-- Alfred 5 with the Powerpack
+- Alfred 6 with the Powerpack (Alfred UI)
 - macOS
 - `/usr/bin/python3`
 - Raycast script commands on disk. Raycast itself does not have to be installed.

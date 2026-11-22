@@ -6,6 +6,6 @@ out="$root/dist/Raycast Script Commands.alfredworkflow"
 rm -f "$out"
 (
   cd "$root/workflow"
-  zip -X -r "$out" info.plist rsc.py
+  zip -X -r "$out" info.plist rsc.py rsc.alfredui -x "*/__pycache__/*" "*/.DS_Store"
 )
 echo "$out"

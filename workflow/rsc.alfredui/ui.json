@@ -1,0 +1,347 @@
+{
+ "bundleid": "com.aliafshany.raycast-script-commands.ui",
+ "log": {
+  "level": "info",
+  "internal": true
+ },
+ "colours": {
+  "card": "#8080801A",
+  "field": "#8080802E"
+ },
+ "window": {
+  "title": "Script Commands",
+  "movablebybackground": true,
+  "size": {
+   "width": 860,
+   "height": 500
+  },
+  "padding": 0,
+  "root": {
+   "id": "root",
+   "type": "view",
+   "layout": "flex",
+   "padding": 14,
+   "background": "windowBackgroundColor",
+   "rows": 3,
+   "cols": 2,
+   "spacing": 10,
+   "events": [
+    {
+     "triggers": "launched",
+     "action": {
+      "type": "script",
+      "src": "panel",
+      "args": [
+       "list"
+      ],
+      "async": true
+     }
+    }
+   ],
+   "shortcuts": [
+    {
+     "shortcut": "↓",
+     "action": {
+      "type": "function",
+      "src": "list",
+      "args": "selectnext"
+     }
+    },
+    {
+     "shortcut": "↑",
+     "action": {
+      "type": "function",
+      "src": "list",
+      "args": "selectprevious"
+     }
+    },
+    {
+     "shortcut": "⌘↩",
+     "action": {
+      "type": "json",
+      "src": {
+       "finish": {
+        "args": "{value:d_out.text}",
+        "variables": {
+         "action": "copy"
+        }
+       }
+      }
+     }
+    },
+    {
+     "shortcut": "⌘R",
+     "action": {
+      "type": "script",
+      "src": "panel",
+      "args": [
+       "list"
+      ],
+      "async": true
+     }
+    }
+   ],
+   "components": [
+    {
+     "constraints": {
+      "grid": {
+       "row": 0,
+       "col": 0,
+       "colspan": 2
+      }
+     },
+     "id": "search",
+     "type": "textfield",
+     "text": "",
+     "placeholder": "Filter script commands",
+     "focus": true,
+     "font": {
+      "size": 18
+     },
+     "background": "field",
+     "bordered": false,
+     "focusring": false,
+     "textinsets": {
+      "horizontal": 10,
+      "vertical": 8
+     },
+     "events": [
+      {
+       "triggers": "changed",
+       "action": {
+        "type": "function",
+        "src": "list",
+        "args": "filterdata"
+       }
+      },
+      {
+       "triggers": "actioned",
+       "action": {
+        "type": "script",
+        "src": "panel",
+        "args": [
+         "run",
+         "{value:list.selected.arg}"
+        ],
+        "async": true
+       }
+      }
+     ]
+    },
+    {
+     "constraints": {
+      "grid": {
+       "row": 1,
+       "col": 0,
+       "rowweight": 1.0
+      },
+      "size": {
+       "width": 320
+      }
+     },
+     "type": "view",
+     "layout": "border",
+     "padding": 6,
+     "background": "card",
+     "cornerradius": 10,
+     "components": [
+      "{file:components/list.json}"
+     ]
+    },
+    {
+     "constraints": {
+      "grid": {
+       "row": 1,
+       "col": 1,
+       "colweight": 1.0,
+       "rowweight": 1.0
+      }
+     },
+     "type": "view",
+     "layout": "border",
+     "padding": 16,
+     "spacing": 12,
+     "background": "card",
+     "cornerradius": 10,
+     "components": [
+      {
+       "constraints": {
+        "region": "top"
+       },
+       "type": "view",
+       "layout": "border",
+       "spacing": 6,
+       "components": [
+        {
+         "constraints": {
+          "region": "top"
+         },
+         "id": "d_title",
+         "type": "label",
+         "text": "",
+         "font": {
+          "size": 22,
+          "weight": "semibold"
+         },
+         "linebreak": "truncatetail"
+        },
+        {
+         "constraints": {
+          "region": "centre"
+         },
+         "type": "view",
+         "layout": "form",
+         "spacing": 6,
+         "components": [
+          {
+           "type": "label",
+           "text": "Mode",
+           "colour": "secondaryLabelColor",
+           "font": {
+            "size": 12
+           },
+           "textalign": "right"
+          },
+          {
+           "id": "d_mode",
+           "type": "label",
+           "text": "",
+           "font": {
+            "size": 12
+           }
+          },
+          {
+           "type": "label",
+           "text": "Status",
+           "colour": "secondaryLabelColor",
+           "font": {
+            "size": 12
+           },
+           "textalign": "right"
+          },
+          {
+           "id": "d_info",
+           "type": "label",
+           "text": "",
+           "font": {
+            "size": 12
+           },
+           "linebreak": "truncatetail"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "constraints": {
+        "region": "centre"
+       },
+       "id": "d_out",
+       "type": "textarea",
+       "text": "",
+       "editable": false,
+       "selectable": true,
+       "font": {
+        "size": 15,
+        "monospaced": "digits"
+       },
+       "background": "field",
+       "textinsets": {
+        "horizontal": 10,
+        "vertical": 8
+       }
+      },
+      {
+       "constraints": {
+        "region": "bottom"
+       },
+       "type": "view",
+       "layout": "inline",
+       "spacing": 8,
+       "components": [
+        {
+         "type": "button",
+         "text": "Run  ↩",
+         "events": [
+          {
+           "triggers": "actioned",
+           "action": {
+            "type": "script",
+            "src": "panel",
+            "args": [
+             "run",
+             "{value:list.selected.arg}"
+            ],
+            "async": true
+           }
+          }
+         ]
+        },
+        {
+         "type": "button",
+         "text": "Copy output  ⌘↩",
+         "events": [
+          {
+           "triggers": "actioned",
+           "action": {
+            "type": "json",
+            "src": {
+             "finish": {
+              "args": "{value:d_out.text}",
+              "variables": {
+               "action": "copy"
+              }
+             }
+            }
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "constraints": {
+      "grid": {
+       "row": 2,
+       "col": 0,
+       "colspan": 2
+      }
+     },
+     "type": "view",
+     "layout": "border",
+     "components": [
+      {
+       "constraints": {
+        "region": "left",
+        "size": {
+         "width": 420
+        }
+       },
+       "id": "status",
+       "type": "label",
+       "text": "",
+       "colour": "secondaryLabelColor",
+       "font": {
+        "size": 12
+       },
+       "linebreak": "truncatemiddle"
+      },
+      {
+       "constraints": {
+        "region": "right"
+       },
+       "type": "label",
+       "text": "↑↓ select  ·  ↩ run  ·  ⌘↩ copy output  ·  ⌘R reload  ·  ⎋ close",
+       "colour": "secondaryLabelColor",
+       "font": {
+        "size": 11
+       }
+      }
+     ]
+    }
+   ]
+  }
+ }
+}
